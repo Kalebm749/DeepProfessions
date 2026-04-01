@@ -6,11 +6,11 @@ public final class DeepProfessions extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
+        getLogger().info("DeepProfessions is online!");
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        getLogger().info("DeepProfessions is offline.");
     }
 }
