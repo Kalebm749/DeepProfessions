@@ -7,9 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class DataManager {
 
@@ -60,6 +58,11 @@ public class DataManager {
             }
         }
 
+        List<String> quests = config.getStringList("completed_quests");
+        for (String quest : quests) {
+            data.completeQuest(quest);
+        }
+
         // Load last switch timestamp
         data.setLastSwitchTimestamp(config.getLong("last_switch", 0));
 
@@ -88,6 +91,8 @@ public class DataManager {
         }
 
         config.set("last_switch", data.getLastSwitchTimestamp());
+
+        config.set("completed_quests", new ArrayList<>(data.getCompletedQuests()));
 
         try {
             config.save(file);

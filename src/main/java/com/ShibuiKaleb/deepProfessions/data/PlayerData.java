@@ -6,6 +6,8 @@ import com.ShibuiKaleb.deepProfessions.enums.Specialization;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet
 
 public class PlayerData {
 
@@ -14,6 +16,7 @@ public class PlayerData {
     private Specialization specialization;
     private final Map<Profession, Double> proficiency;
     private long lastSwitchTimestamp;
+    private final Set<String> completedQuests = new HashSet<>();
 
     public PlayerData(UUID playerUUID) {
         this.playerUUID = playerUUID;
@@ -24,6 +27,8 @@ public class PlayerData {
     }
 
     public UUID getPlayerUUID() { return playerUUID; }
+
+    public Set<String> getCompletedQuests() { return completedQuests; }
 
     public Profession getProfession() { return profession; }
     public void setProfession(Profession profession) { this.profession = profession; }
@@ -36,6 +41,14 @@ public class PlayerData {
     }
     public void setProficiency(Profession profession, double value) {
         proficiency.put(profession, value);
+    }
+
+    public boolean hasCompletedQuest(String questId) {
+        return completedQuests.contains(questId);
+    }
+
+    public void completeQuest(String questId) {
+        completedQuests.add(questId);
     }
 
     public Map<Profession, Double> getAllProficiency() { return proficiency; }

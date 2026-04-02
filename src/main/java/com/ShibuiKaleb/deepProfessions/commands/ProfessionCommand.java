@@ -134,6 +134,7 @@ public class ProfessionCommand implements CommandExecutor {
             data.setSpecialization(null);
             data.setProfession(chosen);
             data.setLastSwitchTimestamp(System.currentTimeMillis());
+            data.getCompletedQuests().clear();
             dataManager.save(uuid);
 
             msg(player, "You are now a " + formatProfession(chosen) + ". Your previous profession data has been cleared.");

@@ -15,20 +15,20 @@ public enum Specialization {
     HERBALIST(Profession.FARMER),
 
     // Hunter
+    TRACKER(Profession.HUNTER),
     TRAPPER(Profession.HUNTER),
-    BUTCHER(Profession.HUNTER),
 
     // Fisher
     ANGLER(Profession.FISHER),
     AQUACULTURIST(Profession.FISHER),
 
     // Blacksmith
-    WEAPONSMITH(Profession.BLACKSMITH),
-    ARMORSMITH(Profession.BLACKSMITH),
+    QUARTERMASTER(Profession.BLACKSMITH),
+    FORGER(Profession.BLACKSMITH),
 
     // Alchemist
-    POISONER(Profession.CHEMIST),
-    BREWER(Profession.CHEMIST),
+    ENHANCER(Profession.CHEMIST),
+    ARTISAN(Profession.CHEMIST),
 
     // Chef
     BAKER(Profession.CHEF),
