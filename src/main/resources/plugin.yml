@@ -7,3 +7,8 @@ api-version: '1.21.11'
 load: POSTWORLD
 
 authors: [ ShibuiKaleb ]
+
+commands:
+  profession:
+    description: Manage your profession
+    usage: /profession <choose|change|confirm>
