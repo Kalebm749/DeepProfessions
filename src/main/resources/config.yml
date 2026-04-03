@@ -1,6 +1,9 @@
 # How long players must wait between profession changes (hours)
 change-cooldown-hours: 24
 
+# Toggles Debug Mode
+debug: true
+
 xp-values:
   miner:
     STONE: 2

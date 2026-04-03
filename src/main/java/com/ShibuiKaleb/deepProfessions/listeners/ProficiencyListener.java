@@ -1,10 +1,14 @@
 package com.ShibuiKaleb.deepProfessions.listeners;
 
 import com.ShibuiKaleb.deepProfessions.DeepProfessions;
+import com.ShibuiKaleb.deepProfessions.buffs.BuffManager;
+import com.ShibuiKaleb.deepProfessions.buffs.LumberjackBuffs;
 import com.ShibuiKaleb.deepProfessions.data.DataManager;
 import com.ShibuiKaleb.deepProfessions.data.PlayerData;
 import com.ShibuiKaleb.deepProfessions.enums.Profession;
 import com.ShibuiKaleb.deepProfessions.util.LevelUtil;
+import com.ShibuiKaleb.deepProfessions.enums.Specialization;
+import com.ShibuiKaleb.deepProfessions.util.TreeFeller;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -17,8 +21,6 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Set;
@@ -27,8 +29,9 @@ public class ProficiencyListener implements Listener {
 
     private final DeepProfessions plugin;
     private final DataManager dataManager;
+    private final BuffManager buffManager;
+    private final LumberjackBuffs lumberjackBuffs;
 
-    // Ore blocks that award miner XP
     private static final Set<Material> ORES = Set.of(
             Material.STONE, Material.COAL_ORE, Material.IRON_ORE, Material.COPPER_ORE,
             Material.GOLD_ORE, Material.LAPIS_ORE, Material.REDSTONE_ORE,
@@ -40,7 +43,6 @@ public class ProficiencyListener implements Listener {
             Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_EMERALD_ORE
     );
 
-    // Log blocks that award lumberjack XP
     private static final Set<Material> LOGS = Set.of(
             Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG,
             Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG,
@@ -48,13 +50,11 @@ public class ProficiencyListener implements Listener {
             Material.WARPED_STEM
     );
 
-    // Passive/neutral mobs that award hunter XP
     private static final Set<Class<? extends Entity>> PASSIVE_MOBS = Set.of(
             Cow.class, Sheep.class, Pig.class, Chicken.class, Rabbit.class,
             Horse.class, Llama.class, Fox.class, Wolf.class, Bee.class
     );
 
-    // Metal materials for blacksmith detection
     private static final Set<Material> METAL_TOOLS_AND_WEAPONS = Set.of(
             Material.IRON_SWORD, Material.IRON_AXE, Material.IRON_PICKAXE,
             Material.IRON_SHOVEL, Material.IRON_HOE,
@@ -73,13 +73,11 @@ public class ProficiencyListener implements Listener {
             Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE, Material.NETHERITE_LEGGINGS, Material.NETHERITE_BOOTS
     );
 
-    // Leather armor for tailor detection
     private static final Set<Material> LEATHER_ARMOR = Set.of(
             Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE,
             Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS
     );
 
-    // Food items for chef detection
     private static final Set<Material> FOODS = Set.of(
             Material.BREAD, Material.COOKED_BEEF, Material.COOKED_PORKCHOP,
             Material.COOKED_CHICKEN, Material.COOKED_MUTTON, Material.COOKED_RABBIT,
@@ -88,12 +86,12 @@ public class ProficiencyListener implements Listener {
             Material.MUSHROOM_STEW, Material.RABBIT_STEW, Material.BEETROOT_SOUP
     );
 
-    public ProficiencyListener(DeepProfessions plugin, DataManager dataManager) {
+    public ProficiencyListener(DeepProfessions plugin, DataManager dataManager, BuffManager buffManager, LumberjackBuffs lumberjackBuffs) {
         this.plugin = plugin;
         this.dataManager = dataManager;
+        this.buffManager = buffManager;
+        this.lumberjackBuffs = lumberjackBuffs;
     }
-
-    // ---- MINER & LUMBERJACK & FARMER ----
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
@@ -110,16 +108,30 @@ public class ProficiencyListener implements Listener {
         } else if (profession == Profession.LUMBERJACK && LOGS.contains(block)) {
             double xp = plugin.getConfig().getDouble("xp-values.lumberjack." + block.name(), 0);
             awardXP(player, data, xp);
+
+            // Arborist tree felling
+            Specialization spec = data.getSpecialization();
+            if (spec == Specialization.ARBORIST) {
+                int level = LevelUtil.getLevel(data.getProficiency(Profession.LUMBERJACK));
+                double fellChance = 0;
+                if (level >= 80) fellChance = 0.20;
+                else if (level >= 45) fellChance = 0.10;
+
+                plugin.getDebugLogger().log(player.getName() + " | Arborist tree fell roll"
+                        + " | Level: " + level
+                        + " | Chance: " + (fellChance * 100) + "%");
+
+                if (fellChance > 0) {
+                    TreeFeller.tryFell(player, event.getBlock(), fellChance);
+                }
+            }
         } else if (profession == Profession.FARMER) {
-            // Only award XP for fully grown crops
             if (isMatureCrop(event.getBlock())) {
                 double xp = plugin.getConfig().getDouble("xp-values.farmer." + block.name(), 0);
                 if (xp > 0) awardXP(player, data, xp);
             }
         }
     }
-
-    // ---- HUNTER ----
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
@@ -135,8 +147,6 @@ public class ProficiencyListener implements Listener {
         if (xp > 0) awardXP(player, data, xp);
     }
 
-    // ---- FISHER ----
-
     @EventHandler
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
@@ -147,8 +157,6 @@ public class ProficiencyListener implements Listener {
         double xp = plugin.getConfig().getDouble("xp-values.fisher.FISH", 8);
         awardXP(player, data, xp);
     }
-
-    // ---- BLACKSMITH ----
 
     @EventHandler
     public void onCraftItem(CraftItemEvent event) {
@@ -177,13 +185,8 @@ public class ProficiencyListener implements Listener {
         }
     }
 
-    // ---- ALCHEMIST ----
-
     @EventHandler
     public void onBrew(BrewEvent event) {
-        // BrewEvent doesn't have a direct player reference — get it from the block's owner
-        // We'll handle this via the ingredient slot check
-        // For now award XP to any nearby Alchemist player — refine later
         for (Player player : event.getBlock().getWorld().getPlayers()) {
             if (event.getBlock().getLocation().distanceSquared(player.getLocation()) > 25) continue;
             PlayerData data = dataManager.get(player.getUniqueId());
@@ -193,8 +196,6 @@ public class ProficiencyListener implements Listener {
             break;
         }
     }
-
-    // ---- ARCANIST ----
 
     @EventHandler
     public void onEnchantItem(EnchantItemEvent event) {
@@ -206,8 +207,6 @@ public class ProficiencyListener implements Listener {
         awardXP(player, data, xp);
     }
 
-    // ---- CORE XP AWARD METHOD ----
-
     private void awardXP(Player player, PlayerData data, double amount) {
         if (amount <= 0) return;
 
@@ -218,6 +217,11 @@ public class ProficiencyListener implements Listener {
         double newXP = currentXP + amount;
         data.setProficiency(profession, newXP);
         dataManager.save(player.getUniqueId());
+
+        //Debug
+        plugin.getDebugLogger().log(player.getName() + " | Profession: " + profession
+                + " | +" + amount + " XP | Total: " + newXP
+                + " | Level: " + LevelUtil.getLevel(newXP));
 
         int levelAfter = LevelUtil.getLevel(newXP);
 
@@ -234,7 +238,10 @@ public class ProficiencyListener implements Listener {
                         .append(Component.text("Level up! You are now level " + newLevel + " (" + tier.name() + ")", NamedTextColor.YELLOW))
         );
 
-        // Minor milestone every 5 levels
+        if (data.getProfession() == Profession.LUMBERJACK) {
+            lumberjackBuffs.applyBuffs(player, data);
+        }
+
         if (LevelUtil.isMinorMilestone(newLevel)) {
             player.sendMessage(
                     Component.text("[DeepProfessions] ", NamedTextColor.GOLD)
@@ -242,7 +249,6 @@ public class ProficiencyListener implements Listener {
             );
         }
 
-        // Major milestone every 20 levels — quest gate (placeholder for now)
         if (LevelUtil.isMajorMilestone(newLevel)) {
             player.sendMessage(
                     Component.text("[DeepProfessions] ", NamedTextColor.GOLD)
@@ -251,7 +257,6 @@ public class ProficiencyListener implements Listener {
         }
     }
 
-    // Checks if a crop block is fully grown
     private boolean isMatureCrop(org.bukkit.block.Block block) {
         if (block.getBlockData() instanceof org.bukkit.block.data.Ageable ageable) {
             return ageable.getAge() == ageable.getMaximumAge();

@@ -6,20 +6,26 @@ import com.ShibuiKaleb.deepProfessions.commands.ProfessionCommand;
 import com.ShibuiKaleb.deepProfessions.commands.ProfessionTabCompleter;
 import com.ShibuiKaleb.deepProfessions.listeners.ProficiencyListener;
 import com.ShibuiKaleb.deepProfessions.buffs.BuffManager;
+import com.ShibuiKaleb.deepProfessions.buffs.LumberjackBuffs;
+import com.ShibuiKaleb.deepProfessions.util.DebugLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DeepProfessions extends JavaPlugin {
 
     private DataManager dataManager;
     private BuffManager buffManager;
+    private LumberjackBuffs lumberjackBuffs;
+    private DebugLogger debugLogger;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         this.dataManager = new DataManager(this);
         this.buffManager = new BuffManager(this);
-        getServer().getPluginManager().registerEvents(new PlayerListener(dataManager, buffManager), this);
-        getServer().getPluginManager().registerEvents(new ProficiencyListener(this, dataManager), this);
+        this.lumberjackBuffs = new LumberjackBuffs(this, buffManager);
+        this.debugLogger = new DebugLogger(this);
+        getServer().getPluginManager().registerEvents(new PlayerListener(dataManager, buffManager, lumberjackBuffs), this);
+        getServer().getPluginManager().registerEvents(new ProficiencyListener(this, dataManager, buffManager, lumberjackBuffs), this);
         getCommand("profession").setExecutor(new ProfessionCommand(this, dataManager));
         getCommand("profession").setTabCompleter(new ProfessionTabCompleter());
         getLogger().info("DeepProfessions is online!");
@@ -36,4 +42,8 @@ public final class DeepProfessions extends JavaPlugin {
     public BuffManager getBuffManager() {
         return buffManager;
     }
+    public LumberjackBuffs getLumberjackBuffs(){
+        return lumberjackBuffs;
+    }
+    public DebugLogger getDebugLogger() { return debugLogger; }
 }
