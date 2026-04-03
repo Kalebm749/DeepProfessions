@@ -20,7 +20,7 @@ public class LumberjackBuffs {
     private static final String MOVE_SPEED = "lumberjack_move_speed";
     private static final String FOREST_STRENGTH = "lumberjack_forest_strength";
 
-    public LumberjackBuffs(BuffManager buffManager) {
+    public LumberjackBuffs(DeepProfessions plugin, BuffManager buffManager) {
         this.plugin = plugin;
         this.buffManager = buffManager;
     }
@@ -32,6 +32,9 @@ public class LumberjackBuffs {
         ));
         Specialization spec = data.getSpecialization();
 
+        // Always clear first to avoid stale modifiers from previous sessions
+        clearBuffs(player);
+
         plugin.getDebugLogger().log(player.getName() + " | Applying Lumberjack buffs"
                 + " | Level: " + level
                 + " | Spec: " + (spec != null ? spec.name() : "none"));
@@ -40,8 +43,10 @@ public class LumberjackBuffs {
 
         if (level >= 40 && spec != null) {
             if (spec == Specialization.CARPENTER) {
+                plugin.getDebugLogger().log(player.getName() + " | Applying Carpenter buffs");
                 applyCarpenterBuffs(player, level);
             } else if (spec == Specialization.ARBORIST) {
+                plugin.getDebugLogger().log(player.getName() + " | Applying Arborist buffs");
                 applyArboristBuffs(player, level);
             }
         }
@@ -50,13 +55,13 @@ public class LumberjackBuffs {
     // Remove all lumberjack buffs from a player
     public void clearBuffs(Player player) {
         Attribute blockBreakSpeed = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("player.block_break_speed")
+                org.bukkit.NamespacedKey.minecraft("block_break_speed")
         );
         Attribute moveSpeed = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("generic.movement_speed")
+                org.bukkit.NamespacedKey.minecraft("movement_speed")
         );
         Attribute attackDamage = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("generic.attack_damage")
+                org.bukkit.NamespacedKey.minecraft("attack_damage")
         );
 
         if (blockBreakSpeed != null) buffManager.removeModifier(player, blockBreakSpeed, CHOP_SPEED);
@@ -68,14 +73,17 @@ public class LumberjackBuffs {
 
     private void applySharedBuffs(Player player, int level) {
         Attribute blockBreakSpeed = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("player.block_break_speed")
+                org.bukkit.NamespacedKey.minecraft("block_break_speed")
         );
         Attribute moveSpeed = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("generic.movement_speed")
+                org.bukkit.NamespacedKey.minecraft("movement_speed")
         );
         Attribute attackDamage = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("generic.attack_damage")
+                org.bukkit.NamespacedKey.minecraft("attack_damage")
         );
+
+        //Debug
+        plugin.getDebugLogger().log("Block break speed attribute lookup: " + blockBreakSpeed);
 
         // Chop speed — replaces previous value at each milestone
         if (blockBreakSpeed != null) {
@@ -108,7 +116,7 @@ public class LumberjackBuffs {
 
     private void applyCarpenterBuffs(Player player, int level) {
         Attribute blockBreakSpeed = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("player.block_break_speed")
+                org.bukkit.NamespacedKey.minecraft("block_break_speed")
         );
 
         // Chop speed Carpenter track — replaces shared chop speed
@@ -127,7 +135,7 @@ public class LumberjackBuffs {
 
     private void applyArboristBuffs(Player player, int level) {
         Attribute blockBreakSpeed = Registry.ATTRIBUTE.get(
-                org.bukkit.NamespacedKey.minecraft("player.block_break_speed")
+                org.bukkit.NamespacedKey.minecraft("block_break_speed")
         );
 
         // Chop speed Arborist track — replaces shared chop speed

@@ -1,5 +1,6 @@
 package com.ShibuiKaleb.deepProfessions;
 
+import com.ShibuiKaleb.deepProfessions.commands.DPAdminCommand;
 import com.ShibuiKaleb.deepProfessions.data.DataManager;
 import com.ShibuiKaleb.deepProfessions.listeners.PlayerListener;
 import com.ShibuiKaleb.deepProfessions.commands.ProfessionCommand;
@@ -28,6 +29,7 @@ public final class DeepProfessions extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ProficiencyListener(this, dataManager, buffManager, lumberjackBuffs), this);
         getCommand("profession").setExecutor(new ProfessionCommand(this, dataManager));
         getCommand("profession").setTabCompleter(new ProfessionTabCompleter());
+        getCommand("dpadmin").setExecutor(new DPAdminCommand(this, dataManager));
         getLogger().info("DeepProfessions is online!");
     }
 

@@ -12,3 +12,6 @@ commands:
   profession:
     description: Manage your profession
     usage: /profession <choose|change|confirm>
+  dpadmin:
+    description: DeepProfessions admin commands
+    usage: /dpadmin <setlevel>
