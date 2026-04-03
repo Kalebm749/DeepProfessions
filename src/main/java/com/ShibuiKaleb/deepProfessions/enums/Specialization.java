@@ -27,8 +27,8 @@ public enum Specialization {
     FORGER(Profession.BLACKSMITH),
 
     // Alchemist
-    ENHANCER(Profession.CHEMIST),
-    ARTISAN(Profession.CHEMIST),
+    ENHANCER(Profession.ALCHEMIST),
+    ARTISAN(Profession.ALCHEMIST),
 
     // Chef
     BAKER(Profession.CHEF),

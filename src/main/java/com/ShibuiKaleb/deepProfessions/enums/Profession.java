@@ -7,7 +7,7 @@ public enum Profession {
     HUNTER,
     FISHER,
     BLACKSMITH,
-    CHEMIST,
+    ALCHEMIST,
     CHEF,
     TAILOR,
     ARCANIST
